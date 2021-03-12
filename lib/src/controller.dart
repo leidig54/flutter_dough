@@ -68,8 +68,8 @@ class DoughController with ChangeNotifier {
   ///
   /// **A squish can't already be active when calling this function.**
   void start({
-    Offset origin,
-    Offset target,
+    Offset? origin,
+    Offset? target,
   }) {
     assert(!isActive);
 
@@ -89,8 +89,8 @@ class DoughController with ChangeNotifier {
   ///
   /// **A squish must already be active when calling this function.**
   void update({
-    Offset origin,
-    Offset target,
+    Offset? origin,
+    Offset? target,
   }) {
     assert(isActive);
 
@@ -117,7 +117,7 @@ class DoughController with ChangeNotifier {
 
   void _notifyStatusListeners(DoughStatus status) {
     for (final listener in _statusListeners) {
-      listener?.call(status);
+      listener.call(status);
     }
   }
 }

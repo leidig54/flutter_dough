@@ -10,51 +10,51 @@ abstract class DoughTransformer {
   /// Creates a DoughTransformer.
   DoughTransformer() : super();
 
-  double _rawT;
-  double _t;
-  DoughRecipeData _recipe;
-  vmath.Vector2 _origin;
-  vmath.Vector2 _target;
-  vmath.Vector2 _delta;
-  double _deltaAngle;
-  DoughController _controller;
-  Axis _axis;
+  double? _rawT;
+  double? _t;
+  DoughRecipeData? _recipe;
+  vmath.Vector2? _origin;
+  vmath.Vector2? _target;
+  vmath.Vector2? _delta;
+  double? _deltaAngle;
+  DoughController? _controller;
+  Axis? _axis;
 
   /// The unscaled animation time clamped between 0 and 1.
-  double get rawT => _rawT;
+  double? get rawT => _rawT;
 
   /// The scaled animation time, based on [rawT], which has been transformed
   /// by the [DoughRecipeData.entryCurve] or [DoughRecipeData.exitCurve].
-  double get t => _t;
+  double? get t => _t;
 
   /// The contexual recipe applied to the associated [Dough] widget.
-  DoughRecipeData get recipe => _recipe;
+  DoughRecipeData? get recipe => _recipe;
 
   /// The origin of the dough squish. This value is equivalent to
   /// [DoughController.origin], but is a vector instead of an offset.
-  vmath.Vector2 get origin => _origin;
+  vmath.Vector2? get origin => _origin;
 
   /// The target of the dough squish. This value is equivalent to
   /// [DoughController.target], but is a vector instead of an offset.
-  vmath.Vector2 get target => _target;
+  vmath.Vector2? get target => _target;
 
   /// The delta of the dough squish. This value is equivalent to
   /// [DoughController.delta], but is a vector instead of an offset.
-  vmath.Vector2 get delta => _delta;
+  vmath.Vector2? get delta => _delta;
 
   /// The full-circle delta angle of the [delta] value, relative to the
   /// [Dough] widgets up direction. This value ranges between 0 radians
   /// and 2PI radians.
-  double get deltaAngle => _deltaAngle;
+  double? get deltaAngle => _deltaAngle;
 
   /// The controller for the associated [Dough] widget.
-  DoughController get controller => _controller;
+  DoughController? get controller => _controller;
 
-  Axis get axis => _axis;
+  Axis? get axis => _axis;
 
   /// Creates the [Matrix4] which will be used to transform the [Dough.child]
   /// widget.
-  Matrix4 createDoughMatrix();
+  Matrix4? createDoughMatrix();
 
   /// A utility method which creates a [Matrix4] that scales widgets by a
   /// factor of the `DoughRecipe.expansion` property.
@@ -64,7 +64,7 @@ abstract class DoughTransformer {
     // Try to recreate photoshop's liquify effect to push pixels closest to the
     // press point (target) away (1/x). This could give illusion that the screen
     // is squishy dough.
-    final scaleMag = ui.lerpDouble(1, recipe.expansion, t);
+    final scaleMag = ui.lerpDouble(1, recipe!.expansion, t!);
     return Matrix4.identity()..scale(scaleMag);
   }
 
@@ -73,16 +73,16 @@ abstract class DoughTransformer {
   /// `DoughRecipe.viscosity`.
   @protected
   Matrix4 createPerspectiveWarpMatrix() {
-    if (!recipe.usePerspectiveWarp) {
+    if (!recipe!.usePerspectiveWarp) {
       return Matrix4.identity();
     }
 
-    final perspDelta = -delta * t / recipe.viscosity;
+    final perspDelta = -delta! * t! / recipe!.viscosity;
     return Matrix4.identity()
-      ..setEntry(3, 2, recipe.perspectiveWarpDepth)
+      ..setEntry(3, 2, recipe!.perspectiveWarpDepth)
       ..rotateY(-perspDelta.x)
       ..rotateX(perspDelta.y)
-      ..scale(perspDelta.length / recipe.viscosity + 1);
+      ..scale(perspDelta.length / recipe!.viscosity + 1);
   }
 
   /// A utility method which creates a [Matrix4] that skews widgets in the
@@ -90,16 +90,16 @@ abstract class DoughTransformer {
   /// [axis] is specified, the resulting matrix will be constrained to the
   /// provided axis.
   @protected
-  Matrix4 createViscositySkewMatrix() {
-    final skewSize = t * delta.length / recipe.viscosity;
+  Matrix4? createViscositySkewMatrix() {
+    final skewSize = t! * delta!.length / recipe!.viscosity;
     if (axis == Axis.vertical) {
       return Matrix4.identity()..scale(1, skewSize, 1);
     } else if (axis == Axis.horizontal) {
       return Matrix4.identity()..scale(skewSize, 1, 1);
     }
 
-    final rotateAway = Matrix4.rotationZ(-deltaAngle);
-    final rotateTowards = Matrix4.rotationZ(deltaAngle);
+    final rotateAway = Matrix4.rotationZ(-deltaAngle!);
+    final rotateTowards = Matrix4.rotationZ(deltaAngle!);
     final skew = Matrix4.columns(
       vmath.Vector4(1, skewSize, 0, 0),
       vmath.Vector4(skewSize, 1, 0, 0),
@@ -116,7 +116,7 @@ abstract class DoughTransformer {
   ///
   /// You can basically think of this as the core squish behavior.
   @protected
-  Matrix4 createSquishDeformationMatrix() {
+  Matrix4? createSquishDeformationMatrix() {
     return createPerspectiveWarpMatrix() *
         createViscositySkewMatrix() *
         createExpansionMatrix();
@@ -130,17 +130,17 @@ abstract class DoughTransformer {
   /// Creates a rotate-to matrix.
   @Deprecated('Use Matrix4.rotationZ(deltaAngle) instead')
   @protected
-  Matrix4 rotateTowardDeltaMatrix() => Matrix4.rotationZ(deltaAngle);
+  Matrix4 rotateTowardDeltaMatrix() => Matrix4.rotationZ(deltaAngle!);
 
   /// Creates a rotate-away matrix.
   @Deprecated('Use Matrix4.rotationZ(-deltaAngle) instead')
   @protected
-  Matrix4 rotateAwayFromDeltaMatrix() => Matrix4.rotationZ(-deltaAngle);
+  Matrix4 rotateAwayFromDeltaMatrix() => Matrix4.rotationZ(-deltaAngle!);
 
   /// Creates a skew matrix.
   @Deprecated('Use createViscositySkewMatrix() instead')
   @protected
-  Matrix4 bendWithDeltaMatrix() => createViscositySkewMatrix();
+  Matrix4? bendWithDeltaMatrix() => createViscositySkewMatrix();
 }
 
 /// Transforms [Dough.child] widgets such that they stretch from their origin
@@ -151,10 +151,10 @@ class BasicDoughTransformer extends DoughTransformer {
   BasicDoughTransformer() : super();
 
   @override
-  Matrix4 createDoughMatrix() {
+  Matrix4? createDoughMatrix() {
     final translate = Matrix4.translationValues(
-      delta.x * t / recipe.adhesion,
-      delta.y * t / recipe.adhesion,
+      delta!.x * t! / recipe!.adhesion,
+      delta!.y * t! / recipe!.adhesion,
       0,
     );
 
@@ -170,8 +170,8 @@ class BasicDoughTransformer extends DoughTransformer {
 class DraggableOverlayDoughTransformer extends DoughTransformer {
   /// Creates a DraggableOverlayDoughTransformer.
   DraggableOverlayDoughTransformer({
-    @required this.applyDelta,
-    @required this.snapToTargetOnStop,
+    required this.applyDelta,
+    required this.snapToTargetOnStop,
   }) : super();
 
   /// Whether the controller's delta should be applied to the widget.
@@ -183,13 +183,13 @@ class DraggableOverlayDoughTransformer extends DoughTransformer {
   final bool snapToTargetOnStop;
 
   @override
-  Matrix4 createDoughMatrix() {
-    final adhesiveDelta = delta * t / recipe.adhesion;
+  Matrix4? createDoughMatrix() {
+    final adhesiveDelta = delta! * t! / recipe!.adhesion;
 
     Matrix4 translate;
     if (applyDelta) {
       if (snapToTargetOnStop) {
-        final effDelta = -delta * (controller.isActive ? 1 : t);
+        final effDelta = -delta! * (controller!.isActive ? 1 : t!);
         translate = Matrix4.translationValues(
           effDelta.x + adhesiveDelta.x,
           effDelta.y + adhesiveDelta.y,
@@ -197,8 +197,8 @@ class DraggableOverlayDoughTransformer extends DoughTransformer {
         );
       } else {
         translate = Matrix4.translationValues(
-          -delta.x + adhesiveDelta.x,
-          -delta.y + adhesiveDelta.y,
+          -delta!.x + adhesiveDelta.x,
+          -delta!.y + adhesiveDelta.y,
           0,
         );
       }

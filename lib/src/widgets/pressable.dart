@@ -10,10 +10,10 @@ class PressableDoughReleaseDetails {
   });
 
   /// How far the dough was dragged before it was released.
-  final Offset delta;
+  final Offset? delta;
 
   /// The global position of where the user released their hold on dough.
-  final Offset position;
+  final Offset? position;
 }
 
 /// Raised when a user releases their hold on a [PressableDough] widget.
@@ -26,8 +26,8 @@ typedef PressableDoughReleaseCallback = void Function(
 class PressableDough extends StatefulWidget {
   /// Creates a [PressableDough] widget.
   const PressableDough({
-    Key key,
-    @required this.child,
+    Key? key,
+    required this.child,
     this.onStart,
     this.onReleased,
   }) : super(key: key);
@@ -37,11 +37,11 @@ class PressableDough extends StatefulWidget {
 
   /// A callback raised when a user starts a hold on the widget and has
   /// begun to squish it around.
-  final VoidCallback onStart;
+  final VoidCallback? onStart;
 
   /// A callback raised when the user releases their hold on the widget.
   /// (i.e. they stop smooshing the widget).
-  final PressableDoughReleaseCallback onReleased;
+  final PressableDoughReleaseCallback? onReleased;
 
   @override
   _PressableDoughState createState() => _PressableDoughState();

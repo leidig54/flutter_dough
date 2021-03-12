@@ -4,15 +4,14 @@ part of dough;
 class GyroDoughPrefs extends Equatable {
   /// Creates raw [GyroDough] preferences, all values must be specified.
   const GyroDoughPrefs.raw({
-    @required this.sampleCount,
-    @required this.gyroMultiplier,
-  })  : assert(sampleCount != null && sampleCount >= 1),
-        assert(gyroMultiplier != null);
+    required this.sampleCount,
+    required this.gyroMultiplier,
+  }) : assert(sampleCount >= 1);
 
   /// Creates [GyroDough] preferences.
   factory GyroDoughPrefs({
-    int sampleCount,
-    double gyroMultiplier,
+    int? sampleCount,
+    double? gyroMultiplier,
   }) {
     return GyroDoughPrefs.raw(
       sampleCount: sampleCount ?? 10,
@@ -43,8 +42,8 @@ class GyroDoughPrefs extends Equatable {
 
   /// Copies these preferences with some new values.
   GyroDoughPrefs copyWith({
-    int sampleCount,
-    double gyroMultiplier,
+    int? sampleCount,
+    double? gyroMultiplier,
   }) {
     return GyroDoughPrefs.raw(
       sampleCount: sampleCount ?? this.sampleCount,
@@ -70,12 +69,12 @@ class GyroDoughPrefs extends Equatable {
 class GyroDough extends StatefulWidget {
   /// Creates a [GyroDough] widget.
   const GyroDough({
-    Key key,
+    Key? key,
     this.child,
   }) : super(key: key);
 
   /// The child to stretch based on physical device motion.
-  final Widget child;
+  final Widget? child;
 
   @override
   _GyroDoughState createState() => _GyroDoughState();
@@ -86,11 +85,11 @@ class GyroDough extends StatefulWidget {
 class _GyroDoughState extends State<GyroDough> {
   final _controller = DoughController();
 
-  List<Offset> _rollingSamples;
-  Offset _rollingSum;
-  int _rollingIndex;
+  List<Offset>? _rollingSamples;
+  late Offset _rollingSum;
+  late int _rollingIndex;
   bool _hasInitialized = false;
-  StreamSubscription<dynamic> _accelSub;
+  StreamSubscription<dynamic>? _accelSub;
 
   @override
   void initState() {
@@ -133,7 +132,7 @@ class _GyroDoughState extends State<GyroDough> {
 
       // Sync the samples to the new gyro preferences.
       for (var i = 0; i < newSamples.length; ++i) {
-        newSamples[i] = oldSamples[i % oldSamples.length];
+        newSamples[i] = oldSamples![i % oldSamples.length];
         _rollingSum += newSamples[i];
       }
 
@@ -148,7 +147,7 @@ class _GyroDoughState extends State<GyroDough> {
   Widget build(BuildContext context) {
     return Dough(
       controller: _controller,
-      child: widget.child,
+      child: widget.child!,
     );
   }
 
@@ -156,14 +155,14 @@ class _GyroDoughState extends State<GyroDough> {
     final prefs = DoughRecipe.read(context).gyroPrefs;
     final sample = Offset(-event.x, event.y) * prefs.gyroMultiplier;
 
-    _rollingIndex = (_rollingIndex + 1) % _rollingSamples.length;
-    _rollingSum -= _rollingSamples[_rollingIndex];
-    _rollingSamples[_rollingIndex] = sample;
+    _rollingIndex = (_rollingIndex + 1) % _rollingSamples!.length;
+    _rollingSum -= _rollingSamples![_rollingIndex];
+    _rollingSamples![_rollingIndex] = sample;
     _rollingSum += sample;
 
     // Apply a low-pass filter to smooth out the accelerometer values.
     _controller.update(
-      target: _rollingSum / _rollingSamples.length.toDouble(),
+      target: _rollingSum / _rollingSamples!.length.toDouble(),
     );
   }
 }
